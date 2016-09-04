@@ -191,7 +191,7 @@ public class Extractor {
                         .hasArg()
                         .withLongOpt("hours")
                         .withDescription("hours worth of page views")
-                        .create("1"));
+                        .create("r"));
 
         EnvBuilder.addStandardOptions(options);
 
@@ -220,7 +220,7 @@ public class Extractor {
         // Ensure enough page views are loaded
         PageViewDao pvd = env.getComponent(PageViewDao.class);
         Map<Language, SortedSet<DateTime>> loaded = pvd.getLoadedHours();
-        int toLoad = cmd.hasOption("h") ? Integer.valueOf(cmd.getOptionValue("h")) : 5;
+        int toLoad = cmd.hasOption("r") ? Integer.valueOf(cmd.getOptionValue("r")) : 5;
         if (loaded.containsKey(lang)) {
             toLoad -= loaded.get(lang).size();
         }
