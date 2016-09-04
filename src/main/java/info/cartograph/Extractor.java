@@ -65,6 +65,7 @@ public class Extractor {
 
     public void writeTitles(String pathTitles) throws IOException, DaoException {
         BufferedWriter w = WpIOUtils.openWriter(pathTitles);
+        w.write("id\tname\n");
         for (LocalPage p : pageDao.get(DaoFilter.normalPageFilter(lang))) {
             int index = id2Index.get(p.getLocalId());
             assert(index != id2Index.getNoEntryValue());
@@ -75,6 +76,7 @@ public class Extractor {
 
     public void writeIds(String pathIds) throws IOException, DaoException {
         BufferedWriter w = WpIOUtils.openWriter(pathIds);
+        w.write("id\texternalId\n");
         for (LocalPage p : pageDao.get(DaoFilter.normalPageFilter(lang))) {
             int index = id2Index.get(p.getLocalId());
             assert(index != id2Index.getNoEntryValue());
@@ -86,6 +88,7 @@ public class Extractor {
     public void writeVectors(String pathVectors) throws IOException, DaoException {
         DenseVectorGenerator gen = sr.getGenerator();
         BufferedWriter w = WpIOUtils.openWriter(pathVectors);
+        w.write("id\tvector\n");
         for (LocalPage p : pageDao.get(DaoFilter.normalPageFilter(lang))) {
             float[] v = gen.getVector(p.getLocalId());
             if (v == null) continue;
@@ -102,8 +105,8 @@ public class Extractor {
 
     public void writePopularity(String pathPop) throws DaoException, IOException {
         TIntIntMap pageViews = getMedianViews();
-        DenseVectorGenerator gen = sr.getGenerator();
         BufferedWriter w = WpIOUtils.openWriter(pathPop);
+        w.write("id\tpopularity\n");
         for (LocalPage p : pageDao.get(DaoFilter.normalPageFilter(lang))) {
             int pv = pageViews.containsKey(p.getLocalId()) ? pageViews.get(p.getLocalId()) : 1;
             double pr = linkDao.getPageRank(lang, p.getLocalId());
@@ -116,8 +119,8 @@ public class Extractor {
     }
 
     public void writeLinks(String pathLinks) throws DaoException, IOException {
-        DenseVectorGenerator gen = sr.getGenerator();
         BufferedWriter w = WpIOUtils.openWriter(pathLinks);
+        w.write("id\tlinks\n");
         for (LocalPage p : pageDao.get(DaoFilter.normalPageFilter(lang))) {
             int index = id2Index.get(p.getLocalId());
             assert(index != id2Index.getNoEntryValue());
