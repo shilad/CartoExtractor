@@ -188,7 +188,7 @@ public class Extractor {
                         .hasArg()
                         .withLongOpt("hours")
                         .withDescription("hours worth of page views")
-                        .create("1"));
+                        .create("h"));
 
         EnvBuilder.addStandardOptions(options);
 
