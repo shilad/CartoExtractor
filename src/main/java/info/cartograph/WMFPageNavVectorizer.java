@@ -1,5 +1,6 @@
 package info.cartograph;
 
+import gnu.trove.map.TIntIntMap;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.iterators.TransformIterator;
 import org.apache.commons.io.LineIterator;
@@ -11,7 +12,9 @@ import org.wikibrain.core.cmd.Env;
 import org.wikibrain.core.dao.DaoException;
 import org.wikibrain.core.dao.LocalLinkDao;
 import org.wikibrain.core.dao.LocalPageDao;
+import org.wikibrain.core.dao.UniversalPageDao;
 import org.wikibrain.core.lang.Language;
+import org.wikibrain.core.lang.LanguageSet;
 import org.wikibrain.core.model.LocalLink;
 import org.wikibrain.core.model.LocalPage;
 import org.wikibrain.core.model.NameSpace;
@@ -23,10 +26,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * Vectorizes Page Navigation Data from the Wikimedia Foundation.
+ *
+ * https://figshare.com/articles/Wikipedia_Vectors/3146878
+ *
  * @author Shilad Sen
  */
 public class WMFPageNavVectorizer implements Iterable<CartographVector> {
@@ -37,12 +44,16 @@ public class WMFPageNavVectorizer implements Iterable<CartographVector> {
     private final LocalPageDao pageDao;
     private final LocalLinkDao linkDao;
     private final File file;
+    private final UniversalPageDao univDao;
+    private final TIntIntMap concept2Id;
     private int vectorLength = -1;
 
     public WMFPageNavVectorizer(Env env, Language lang, File file) throws ConfigurationException, DaoException {
         this.env = env;
         this.file = file;
         this.lang = lang;
+        this.univDao = env.getComponent(UniversalPageDao.class);
+        this.concept2Id = univDao.getAllUnivToLocalIdsMap(new LanguageSet(lang)).get(lang);
         this.pageDao = env.getComponent(LocalPageDao.class);
         this.linkDao = env.getComponent(LocalLinkDao.class);
         this.pop = new PagePopularity(env, lang);
@@ -94,25 +105,31 @@ public class WMFPageNavVectorizer implements Iterable<CartographVector> {
             return null;
         }
 
-        String title = tokens[0];
+        String strId = tokens[0];
+        if (strId.length() == 0 || !strId.startsWith("Q")) {
+            return null;
+        }
+        int itemId = Integer.valueOf(strId.substring(1));
+        if (!concept2Id.containsKey(itemId)) {
+            return null;
+        }
+        int pageId = concept2Id.get(itemId);
+        LocalPage page = pageDao.getById(lang, pageId);
+
         float v[] = new float[vectorLength];
         for (int i = 0; i < vectorLength; i++) {
             v[i] = Float.valueOf(tokens[i+1]);
         }
-        int id = pageDao.getIdByTitle(title, lang, NameSpace.ARTICLE);
-        if (id <= 0) {
-            return null;
-        }
-        double pp = pop.getPopularity(id);
+        double pp = pop.getPopularity(pageId);
 
         List<String> links = new ArrayList<String>();
-        for (LocalLink ll : linkDao.getLinks(lang, id, true)) {
+        for (LocalLink ll : linkDao.getLinks(lang, pageId, true)) {
             links.add("" + ll.getLocalId());
         }
 
         return new CartographVector(
-                title,
-                "" + id,
+                page.getTitle().getCanonicalTitle(),
+                "" + pageId,
                 links.toArray(new String[links.size()]),
                 v,
                 pp);
