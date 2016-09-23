@@ -3,9 +3,11 @@ package info.cartograph;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
+import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wikibrain.conf.ConfigurationException;
+import org.wikibrain.conf.DefaultOptionBuilder;
 import org.wikibrain.core.cmd.Env;
 import org.wikibrain.core.cmd.EnvBuilder;
 import org.wikibrain.core.dao.*;
@@ -206,8 +208,32 @@ public class GenderExtractor {
     }
 
     public static void main(String args[]) throws ConfigurationException, DaoException, IOException {
-        Env env = EnvBuilder.envFromArgs(args);
+        Options options = new Options();
+
+        // Specify the output directory
+        options.addOption(
+                new DefaultOptionBuilder()
+                        .hasArg()
+                        .withLongOpt("output")
+                        .withDescription("output file")
+                        .create("o"));
+
+        EnvBuilder.addStandardOptions(options);
+
+
+        CommandLineParser parser = new PosixParser();
+        CommandLine cmd;
+        try {
+            cmd = parser.parse(options, args);
+        } catch (ParseException e) {
+            System.err.println("Invalid option usage: " + e.getMessage());
+            new HelpFormatter().printHelp("SRBuilder", options);
+            return;
+        }
+        String output = cmd.hasOption("o") ? cmd.getOptionValue("o") : "genders.tsv";
+
+        Env env = new EnvBuilder(cmd).build();
         GenderExtractor ge = new GenderExtractor(env, env.getDefaultLanguage());
-        ge.writeAll("simple-genders.tsv");
+        ge.writeAll(output);
     }
 }
