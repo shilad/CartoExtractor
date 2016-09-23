@@ -188,13 +188,12 @@ public class GenderExtractor {
         TIntIntMap numMen = new TIntIntHashMap();
         TIntIntMap numWomen = new TIntIntHashMap();
         for (LocalLink ll : linkDao.get(DaoFilter.normalPageFilter(lang))) {
-            int id = ll.getSourceId();
-            int w = wdGenders.get(id);
+            int w = wdGenders.get(ll.getDestId());
             if (w > 0) {
-                numWomen.adjustOrPutValue(id, +1, +1);
+                numWomen.adjustOrPutValue(ll.getSourceId(), +1, +1);
             }
             if (w < 0) {
-                numMen.adjustOrPutValue(id, +1, +1);
+                numMen.adjustOrPutValue(ll.getSourceId(), +1, +1);
             }
         }
         for (LocalPage lp : pageDao.get(DaoFilter.normalPageFilter(lang))) {
