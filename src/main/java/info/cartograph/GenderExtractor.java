@@ -197,8 +197,16 @@ public class GenderExtractor {
             }
         }
         for (LocalPage lp : pageDao.get(DaoFilter.normalPageFilter(lang))) {
-            int m = numMen.get(lp.getLocalId());
-            int w = numWomen.get(lp.getLocalId());
+            int pw = wdGenders.get(lp.getLocalId());
+            int m = 0, w = 0;
+            if (pw > 0) {
+                w = 10000;
+            } else if (pw < 0) {
+                m = 10000;
+            } else {
+                m = numMen.get(lp.getLocalId());
+                w = numWomen.get(lp.getLocalId());
+            }
             if (w != 0 || m != 0) {
                 writer.write(lp.getLocalId() + "\t" + m + "\t" + w + "\n");
             }
