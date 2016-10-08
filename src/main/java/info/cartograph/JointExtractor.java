@@ -71,12 +71,14 @@ public class JointExtractor {
         BufferedWriter w = WpIOUtils.openWriter(pathVectors);
         w.write("id\tvector\n");
         for (CartographVector cv : vectors) {
-            int index = id2Index.get(cv.getId());
-            w.write(index + "");
-            for (float x : cv.getVector()) {
-                w.write("\t" + Float.toString(x));
+            if (id2Index.containsKey(cv.getId())) {
+                int index = id2Index.get(cv.getId());
+                w.write(index + "");
+                for (float x : cv.getVector()) {
+                    w.write("\t" + Float.toString(x));
+                }
+                w.write("\n");
             }
-            w.write("\n");
         }
         w.close();
     }
