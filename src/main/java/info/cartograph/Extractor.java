@@ -165,12 +165,12 @@ public class Extractor {
 
         String output = cmd.hasOption("o") ? cmd.getOptionValue("o") : ".";
 
-        // Build word2vec if necessary
-
+        PagePopularity pop = new PagePopularity(env, lang);
         Iterable<CartographVector> iter;
         if (cmd.hasOption("v")) {
-            iter = new WMFPageNavVectorizer(env, lang, new File(cmd.getOptionValue("v")));
+            iter = new WMFPageNavVectorizer(env, lang, pop, new File(cmd.getOptionValue("v")));
         } else {
+            // Build word2vec if necessary
             String metric = cmd.hasOption("m") ? cmd.getOptionValue("m") : "prebuiltword2vec";
             SRBuilder builder = new SRBuilder(env, metric, env.getDefaultLanguage());
             builder.setDeleteExistingData(false);
@@ -189,7 +189,7 @@ public class Extractor {
             }
 
             SRMetric sr = env.getComponent(SRMetric.class, metric, lang);
-            iter = new SRVectorizer(env, sr);
+            iter = new SRVectorizer(env, pop, sr);
         }
         Extractor ext = new Extractor(env, lang, iter);
         ext.writeAll(output);

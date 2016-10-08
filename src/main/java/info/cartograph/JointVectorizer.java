@@ -52,7 +52,7 @@ public class JointVectorizer implements Iterable<CartographVector> {
     private final DenseMatrix matrix;
     private int vectorLength = -1;
 
-    public JointVectorizer(Env env, Language lang, File file, SRMetric metric) throws ConfigurationException, DaoException {
+    public JointVectorizer(Env env, Language lang, File file, PagePopularity pop, SRMetric metric) throws ConfigurationException, DaoException {
         this.env = env;
         this.file = file;
         this.lang = lang;
@@ -62,7 +62,7 @@ public class JointVectorizer implements Iterable<CartographVector> {
         this.concept2Id = univDao.getAllUnivToLocalIdsMap(new LanguageSet(lang)).get(lang);
         this.pageDao = env.getComponent(LocalPageDao.class);
         this.linkDao = env.getComponent(LocalLinkDao.class);
-        this.pop = new PagePopularity(env, lang);
+        this.pop = pop;
     }
 
     public Iterator<CartographVector> iterator() {

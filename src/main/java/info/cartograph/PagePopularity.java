@@ -13,6 +13,8 @@ import org.wikibrain.core.dao.DaoException;
 import org.wikibrain.core.dao.LocalLinkDao;
 import org.wikibrain.core.lang.Language;
 import org.wikibrain.pageview.PageViewDao;
+import org.wikibrain.utils.ParallelForEach;
+import org.wikibrain.utils.Procedure;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,17 +51,21 @@ public class PagePopularity {
             return new TIntIntHashMap();
         }
         LOG.info("Loading {} hours worth of page views", hours.get(lang).size());
-        Map<Integer, TIntList> pageSamples = new HashMap<Integer, TIntList>();
-        for (DateTime dt : hours.get(lang)) {
-            LOG.info("Loading pageviews for hour {}", dt);
-            TIntIntMap pv = viewDao.getAllViews(lang, dt.minusMinutes(1), dt.plusMinutes(1));
-            for (int pageId : pv.keys()) {
-                if (!pageSamples.containsKey(pageId)) {
-                    pageSamples.put(pageId, new TIntArrayList());
+        final Map<Integer, TIntList> pageSamples = new HashMap<Integer, TIntList>();
+        ParallelForEach.loop(hours.get(lang), new Procedure<DateTime>() {
+            public void call(DateTime dt) throws Exception {
+                LOG.info("Loading pageviews for hour {}", dt);
+                TIntIntMap pv = viewDao.getAllViews(lang, dt.minusMinutes(1), dt.plusMinutes(1));
+                synchronized (pageSamples) {
+                    for (int pageId : pv.keys()) {
+                        if (!pageSamples.containsKey(pageId)) {
+                            pageSamples.put(pageId, new TIntArrayList());
+                        }
+                        pageSamples.get(pageId).add(pv.get(pageId));
+                    }
                 }
-                pageSamples.get(pageId).add(pv.get(pageId));
             }
-        }
+        });
         TIntIntMap medians = new TIntIntHashMap();
         for (int pageId : pageSamples.keySet()) {
             TIntList sample = pageSamples.get(pageId);

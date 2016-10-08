@@ -181,7 +181,6 @@ public class JointExtractor {
         String output = cmd.hasOption("o") ? cmd.getOptionValue("o") : ".";
 
         // Build word2vec if necessary
-
         String metric = cmd.hasOption("m") ? cmd.getOptionValue("m") : "prebuiltword2vec";
         SRBuilder builder = new SRBuilder(env, metric, env.getDefaultLanguage());
         builder.setDeleteExistingData(false);
@@ -198,10 +197,11 @@ public class JointExtractor {
         if (toLoad > 0) {
             pvd.ensureLoaded(selectRandomIntervals(toLoad), new LanguageSet(lang));
         }
+        PagePopularity pop = new PagePopularity(env, lang);
         SRMetric sr = env.getComponent(SRMetric.class, metric, lang);
-        Iterable<CartographVector> basicIter = new SRVectorizer(env, sr);
+        Iterable<CartographVector> basicIter = new SRVectorizer(env, pop, sr);
 
-        Iterable<CartographVector> jointIter = new JointVectorizer(env, lang, new File(cmd.getOptionValue("v")), sr);
+        Iterable<CartographVector> jointIter = new JointVectorizer(env, lang, new File(cmd.getOptionValue("v")), pop, sr);
         JointExtractor ext = new JointExtractor(env, lang, basicIter, jointIter);
         ext.writeAll(output);
 

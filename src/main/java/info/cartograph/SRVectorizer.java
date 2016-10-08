@@ -34,14 +34,14 @@ public class SRVectorizer implements Iterable<CartographVector> {
     private final LocalPageDao pageDao;
     private final LocalLinkDao linkDao;
 
-    public SRVectorizer(Env env, SRMetric metric) throws ConfigurationException, DaoException {
+    public SRVectorizer(Env env, PagePopularity pop, SRMetric metric) throws ConfigurationException, DaoException {
         this.env = env;
         this.metric = (DenseVectorSRMetric)metric;
         this.lang = metric.getLanguage();
         this.matrix = ((DenseVectorSRMetric) metric).getGenerator().getFeatureMatrix();
         this.pageDao = env.getComponent(LocalPageDao.class);
         this.linkDao = env.getComponent(LocalLinkDao.class);
-        this.pop = new PagePopularity(env, lang);
+        this.pop = pop;
     }
 
     public Iterator<CartographVector> iterator() {

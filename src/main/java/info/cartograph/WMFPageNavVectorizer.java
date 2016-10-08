@@ -48,7 +48,7 @@ public class WMFPageNavVectorizer implements Iterable<CartographVector> {
     private final TIntIntMap concept2Id;
     private int vectorLength = -1;
 
-    public WMFPageNavVectorizer(Env env, Language lang, File file) throws ConfigurationException, DaoException {
+    public WMFPageNavVectorizer(Env env, Language lang, PagePopularity pop, File file) throws ConfigurationException, DaoException {
         this.env = env;
         this.file = file;
         this.lang = lang;
@@ -56,7 +56,7 @@ public class WMFPageNavVectorizer implements Iterable<CartographVector> {
         this.concept2Id = univDao.getAllUnivToLocalIdsMap(new LanguageSet(lang)).get(lang);
         this.pageDao = env.getComponent(LocalPageDao.class);
         this.linkDao = env.getComponent(LocalLinkDao.class);
-        this.pop = new PagePopularity(env, lang);
+        this.pop = pop;
     }
 
     public Iterator<CartographVector> iterator() {
