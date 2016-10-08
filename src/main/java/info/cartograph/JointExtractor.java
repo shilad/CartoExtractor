@@ -6,6 +6,8 @@ import org.apache.commons.cli.*;
 import org.joda.time.DateTime;
 import org.joda.time.Hours;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wikibrain.conf.ConfigurationException;
 import org.wikibrain.conf.DefaultOptionBuilder;
 import org.wikibrain.core.WikiBrainException;
@@ -28,6 +30,8 @@ import java.util.*;
  * @author Shilad Sen
  */
 public class JointExtractor {
+    private static final Logger LOG = LoggerFactory.getLogger(SRVectorizer.class);
+
 
     private final Map<String, Integer> id2Index;
     private final Env env;
@@ -45,10 +49,14 @@ public class JointExtractor {
 
     public void writeAll(String dir) throws IOException, DaoException {
         List<CartographVector> vectors = new ArrayList<CartographVector>();
+        int i = 0;
         for (CartographVector cv : vectorIter) {
             if (cv != null) {
                 vectors.add(cv);
                 id2Index.put(cv.getId(), id2Index.size() + 1);
+            }
+            if (i++ % 10000 == 0) {
+                LOG.info("Loading basic vectors for page " + i);
             }
         }
         writeIds(vectors, dir + "/ids.tsv");
@@ -59,10 +67,14 @@ public class JointExtractor {
 
 
         vectors.clear();
+        i = 0;
         for (CartographVector cv : jointVectorIter) {
             if (cv != null) {
                 vectors.add(cv);
                 assert(id2Index.containsKey(cv.getId()));
+            }
+            if (i++ % 10000 == 0) {
+                LOG.info("Loading joint vectors for page " + i);
             }
         }
         writeVectors(vectors, dir + "/joint-vectors.tsv");
