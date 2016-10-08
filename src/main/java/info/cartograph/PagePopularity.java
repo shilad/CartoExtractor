@@ -52,7 +52,7 @@ public class PagePopularity {
         }
         LOG.info("Loading {} hours worth of page views", hours.get(lang).size());
         final Map<Integer, TIntList> pageSamples = new HashMap<Integer, TIntList>();
-        ParallelForEach.loop(hours.get(lang), new Procedure<DateTime>() {
+        ParallelForEach.loop(hours.get(lang), 8, new Procedure<DateTime>() {
             public void call(DateTime dt) throws Exception {
                 LOG.info("Loading pageviews for hour {}", dt);
                 TIntIntMap pv = viewDao.getAllViews(lang, dt.minusMinutes(1), dt.plusMinutes(1));
@@ -65,7 +65,7 @@ public class PagePopularity {
                     }
                 }
             }
-        });
+        }, 1);
         TIntIntMap medians = new TIntIntHashMap();
         for (int pageId : pageSamples.keySet()) {
             TIntList sample = pageSamples.get(pageId);
