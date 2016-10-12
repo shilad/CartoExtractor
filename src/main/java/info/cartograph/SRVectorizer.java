@@ -10,13 +10,13 @@ import org.wikibrain.core.dao.DaoException;
 import org.wikibrain.core.dao.LocalLinkDao;
 import org.wikibrain.core.dao.LocalPageDao;
 import org.wikibrain.core.lang.Language;
-import org.wikibrain.core.model.LocalLink;
 import org.wikibrain.core.model.LocalPage;
 import org.wikibrain.matrix.DenseMatrix;
 import org.wikibrain.matrix.DenseMatrixRow;
 import org.wikibrain.sr.SRMetric;
 import org.wikibrain.sr.vector.DenseVectorSRMetric;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -60,6 +60,11 @@ public class SRVectorizer implements Iterable<CartographVector> {
         );
     }
 
+    public CartographVector getVector(String id) throws IOException, DaoException {
+        DenseMatrixRow row = matrix.getRow(Integer.valueOf(id));
+        return (row == null) ? null : makeVector(row);
+    }
+
     protected CartographVector makeVector(DenseMatrixRow row) throws DaoException {
         LocalPage p = pageDao.getById(lang, row.getRowIndex());
         if (p == null) {
@@ -68,9 +73,9 @@ public class SRVectorizer implements Iterable<CartographVector> {
         double pp = pop.getPopularity(p.getLocalId());
 
         List<String> links = new ArrayList<String>();
-        for (LocalLink ll : linkDao.getLinks(lang, p.getLocalId(), true)) {
-            links.add("" + ll.getLocalId());
-        }
+//        for (LocalLink ll : linkDao.getLinks(lang, p.getLocalId(), true)) {
+//            links.add("" + ll.getLocalId());
+//        }
 
         return new CartographVector(
                 p.getTitle().getCanonicalTitle(),

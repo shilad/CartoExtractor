@@ -11,11 +11,15 @@ import org.wikibrain.conf.ConfigurationException;
 import org.wikibrain.core.cmd.Env;
 import org.wikibrain.core.dao.DaoException;
 import org.wikibrain.core.dao.LocalLinkDao;
+import org.wikibrain.core.dao.MetaInfoDao;
+import org.wikibrain.core.dao.sql.SqlCache;
 import org.wikibrain.core.lang.Language;
 import org.wikibrain.pageview.PageViewDao;
+import org.wikibrain.pageview.PageViewSqlDao;
 import org.wikibrain.utils.ParallelForEach;
 import org.wikibrain.utils.Procedure;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
@@ -24,18 +28,21 @@ import java.util.SortedSet;
  * @author Shilad Sen
  */
 public class PagePopularity {
+    private static final String MEDIAN_VIEWS_KEY = "median_views";
     private static final Logger LOG = LoggerFactory.getLogger(PagePopularity.class);
     private final PageViewDao viewDao;
     private final Env env;
     private final Language lang;
     private final TIntIntMap views;
     private final LocalLinkDao linkDao;
+    private final MetaInfoDao metaDao;
 
     public PagePopularity(Env env, Language lang) throws ConfigurationException, DaoException {
         this.env = env;
         this.lang = lang;
         this.linkDao = env.getComponent(LocalLinkDao.class);
         this.viewDao = env.getComponent(PageViewDao.class);
+        this.metaDao = env.getComponent(MetaInfoDao.class);
         this.views = getMedianViews();
     }
 
@@ -44,6 +51,13 @@ public class PagePopularity {
     }
 
     private TIntIntMap getMedianViews() throws DaoException {
+        String cachePath = env.getConfiguration().getString("dao.sqlCachePath");
+        SqlCache cache = new SqlCache(metaDao, new File(cachePath));
+        TIntIntMap medians = (TIntIntMap) cache.get(MEDIAN_VIEWS_KEY);
+        if (medians != null) {
+            return medians;
+        }
+
         LOG.info("Getting loaded page views.");
         Map<Language, SortedSet<DateTime>> hours = viewDao.getLoadedHours();
         if (!hours.containsKey(lang) || !hours.containsKey(lang)) {
@@ -66,13 +80,14 @@ public class PagePopularity {
                 }
             }
         }, 1);
-        TIntIntMap medians = new TIntIntHashMap();
+        medians = new TIntIntHashMap();
         for (int pageId : pageSamples.keySet()) {
             TIntList sample = pageSamples.get(pageId);
             sample.sort();
             medians.put(pageId, sample.get(sample.size() / 2));
         }
         LOG.info("Loaded {} total page views", medians.size());
+        cache.put(MEDIAN_VIEWS_KEY, medians);
         return medians;
     }
 }

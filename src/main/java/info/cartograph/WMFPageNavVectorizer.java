@@ -1,6 +1,7 @@
 package info.cartograph;
 
 import gnu.trove.map.TIntIntMap;
+import gnu.trove.set.TIntSet;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.iterators.TransformIterator;
 import org.apache.commons.io.LineIterator;
@@ -46,12 +47,18 @@ public class WMFPageNavVectorizer implements Iterable<CartographVector> {
     private final File file;
     private final UniversalPageDao univDao;
     private final TIntIntMap concept2Id;
+    private final TIntSet validIds;
     private int vectorLength = -1;
 
-    public WMFPageNavVectorizer(Env env, Language lang, PagePopularity pop, File file) throws ConfigurationException, DaoException {
+    public WMFPageNavVectorizer(Env env, Language lang, PagePopularity pop, File file) throws DaoException, ConfigurationException {
+        this(env, lang, pop, file, null);
+    }
+
+    public WMFPageNavVectorizer(Env env, Language lang, PagePopularity pop, File file, TIntSet validIds) throws ConfigurationException, DaoException {
         this.env = env;
         this.file = file;
         this.lang = lang;
+        this.validIds = validIds;
         this.univDao = env.getComponent(UniversalPageDao.class);
         this.concept2Id = univDao.getAllUnivToLocalIdsMap(new LanguageSet(lang)).get(lang);
         this.pageDao = env.getComponent(LocalPageDao.class);
@@ -114,6 +121,9 @@ public class WMFPageNavVectorizer implements Iterable<CartographVector> {
             return null;
         }
         int pageId = concept2Id.get(itemId);
+        if (validIds != null && !validIds.contains(pageId)) {
+            return null;
+        }
         LocalPage page = pageDao.getById(lang, pageId);
 
         float v[] = new float[vectorLength];
@@ -123,9 +133,9 @@ public class WMFPageNavVectorizer implements Iterable<CartographVector> {
         double pp = pop.getPopularity(pageId);
 
         List<String> links = new ArrayList<String>();
-        for (LocalLink ll : linkDao.getLinks(lang, pageId, true)) {
-            links.add("" + ll.getLocalId());
-        }
+//        for (LocalLink ll : linkDao.getLinks(lang, pageId, true)) {
+//            links.add("" + ll.getLocalId());
+//        }
 
         return new CartographVector(
                 page.getTitle().getCanonicalTitle(),

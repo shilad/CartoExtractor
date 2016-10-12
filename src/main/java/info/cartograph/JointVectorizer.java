@@ -1,6 +1,7 @@
 package info.cartograph;
 
 import gnu.trove.map.TIntIntMap;
+import gnu.trove.set.TIntSet;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.collections15.iterators.TransformIterator;
 import org.apache.commons.io.LineIterator;
@@ -50,13 +51,19 @@ public class JointVectorizer implements Iterable<CartographVector> {
     private final TIntIntMap concept2Id;
     private final DenseVectorSRMetric metric;
     private final DenseMatrix matrix;
+    private final TIntSet validIds;
     private int vectorLength = -1;
 
     public JointVectorizer(Env env, Language lang, File file, PagePopularity pop, SRMetric metric) throws ConfigurationException, DaoException {
+        this(env, lang, file, pop, metric, null);
+    }
+
+    public JointVectorizer(Env env, Language lang, File file, PagePopularity pop, SRMetric metric, TIntSet validIds) throws ConfigurationException, DaoException {
         this.env = env;
         this.file = file;
         this.lang = lang;
         this.metric = (DenseVectorSRMetric)metric;
+        this.validIds = validIds;
         this.matrix = ((DenseVectorSRMetric) metric).getGenerator().getFeatureMatrix();
         this.univDao = env.getComponent(UniversalPageDao.class);
         this.concept2Id = univDao.getAllUnivToLocalIdsMap(new LanguageSet(lang)).get(lang);
@@ -123,6 +130,10 @@ public class JointVectorizer implements Iterable<CartographVector> {
             return null;
         }
         int pageId = concept2Id.get(itemId);
+        if (validIds != null && !validIds.contains(pageId)) {
+            return null;
+        }
+
         LocalPage page = pageDao.getById(lang, pageId);
         DenseMatrixRow row = matrix.getRow(pageId);
         if  (row == null) {

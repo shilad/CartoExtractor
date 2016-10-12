@@ -44,73 +44,10 @@ public class Extractor {
         for (CartographVector cv : vectorIter) {
             if (cv != null) {
                 vectors.add(cv);
-                id2Index.put(cv.getId(), id2Index.size() + 1);
             }
         }
-        writeIds(vectors, dir + "/ids.tsv");
-        writeTitles(vectors, dir + "/names.tsv");
-        writeVectors(vectors, dir + "/vectors.tsv");
-        writePopularity(vectors, dir + "/popularity.tsv");
-        writeLinks(vectors, dir + "/links.tsv");
-    }
-
-
-    public void writeTitles(List<CartographVector> vectors, String pathTitles) throws IOException, DaoException {
-        BufferedWriter w = WpIOUtils.openWriter(pathTitles);
-        w.write("id\tname\n");
-        for (CartographVector v : vectors) {
-            w.write(id2Index.get(v.getId()) + "\t" + v.getName()+ "\n");
-        }
-        w.close();
-    }
-
-    public void writeIds(List<CartographVector> vectors, String pathIds) throws IOException, DaoException {
-        BufferedWriter w = WpIOUtils.openWriter(pathIds);
-        w.write("id\texternalId\n");
-        for (CartographVector v : vectors) {
-            w.write(id2Index.get(v.getId()) + "\t" + v.getId()+ "\n");
-        }
-        w.close();
-    }
-
-    public void writeVectors(List<CartographVector> vectors, String pathVectors) throws IOException, DaoException {
-        BufferedWriter w = WpIOUtils.openWriter(pathVectors);
-        w.write("id\tvector\n");
-        for (CartographVector cv : vectors) {
-            int index = id2Index.get(cv.getId());
-            w.write(index + "");
-            for (float x : cv.getVector()) {
-               w.write("\t" + Float.toString(x));
-            }
-            w.write("\n");
-        }
-        w.close();
-    }
-
-    public void writePopularity(List<CartographVector> vectors, String pathPop) throws DaoException, IOException {
-        BufferedWriter w = WpIOUtils.openWriter(pathPop);
-        w.write("id\tpopularity\n");
-        for (CartographVector v : vectors) {
-            w.write(id2Index.get(v.getId()) + "\t" + v.getPopularity()+ "\n");
-        }
-        w.close();
-    }
-
-    public void writeLinks(List<CartographVector> vectors, String pathLinks) throws DaoException, IOException {
-        BufferedWriter w = WpIOUtils.openWriter(pathLinks);
-        w.write("id\tlinks\n");
-        for (CartographVector cv : vectors) {
-            int index = id2Index.get(cv.getId());
-            w.write(index + "");
-            for (String id2 : cv.getLinkIds()) {
-                if (id2Index.containsKey(id2)) {
-                    w.write("\t" + id2Index.get(id2));
-                }
-            }
-            w.write("\n");
-        }
-        w.close();
-
+        DatasetWriter writer = new DatasetWriter(vectors);
+        writer.writeAll(new File(dir));
     }
 
     public static void main(String args[]) throws ConfigurationException, InterruptedException, WikiBrainException, DaoException, IOException {
