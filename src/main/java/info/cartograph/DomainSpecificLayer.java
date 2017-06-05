@@ -53,7 +53,7 @@ public class DomainSpecificLayer {
     public void createLayer(File input, File output) throws IOException, DaoException {
         BufferedReader reader = WpIOUtils.openBufferedReader(input);
         BufferedWriter writer = WpIOUtils.openWriter(output);
-        writer.write(reader.readLine());    // header
+        writer.write(reader.readLine() + "\n");    // header
         int numLines = 0;
         int numMatches = 0;
 
@@ -74,7 +74,7 @@ public class DomainSpecificLayer {
             }
             if (pageId >= 0) {
                 numMatches++;
-                writer.write(pageId + "\t" + tokens[1]);
+                writer.write(pageId + "\t" + tokens[1] + "\n");
             }
         }
 
