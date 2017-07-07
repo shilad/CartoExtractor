@@ -134,20 +134,21 @@ public class Extractor {
     }
 
 
-    private static List<Interval> selectRandomIntervals(int n) {
-        DateTime now = DateTime.now();
-        Interval interval = new Interval(now.plusDays(-465), now.plusDays(-100));
-        Hours hours = interval.toDuration().toStandardHours();
-        ArrayList result = new ArrayList();
-        Random random = new Random();
+        private static List<Interval> selectRandomIntervals(int n) {
+            DateTime startInterval = new DateTime(2016, 1, 1, 0, 0);
+            DateTime endInterval = new DateTime(2016, 7, 1, 0, 0);
+            Interval interval = new Interval(startInterval, endInterval);
+            Hours hours = interval.toDuration().toStandardHours();
+            ArrayList result = new ArrayList();
+            Random random = new Random();
 
-        for(int i = 0; i < n; ++i) {
-            int begOffset = random.nextInt(hours.getHours());
-            DateTime start = interval.getStart().plusHours(begOffset);
-            DateTime end = start.plusHours(1);
-            result.add(new Interval(start, end));
-        }
+            for(int i = 0; i < n; ++i) {
+                int begOffset = random.nextInt(hours.getHours());
+                DateTime start = interval.getStart().plusHours(begOffset);
+                DateTime end = start.plusHours(1);
+                result.add(new Interval(start, end));
+            }
 
-        return result;
+            return result;
     }
 }
