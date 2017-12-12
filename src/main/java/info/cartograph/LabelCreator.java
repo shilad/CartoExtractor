@@ -5,6 +5,7 @@ import org.apache.commons.cli.*;
 import org.jgrapht.Graph;
 import org.wikibrain.conf.ConfigurationException;
 import org.wikibrain.conf.Configurator;
+import org.wikibrain.conf.DefaultOptionBuilder;
 import org.wikibrain.core.cmd.Env;
 import org.wikibrain.core.cmd.EnvBuilder;
 import org.wikibrain.core.dao.DaoException;
@@ -16,16 +17,13 @@ import org.wikibrain.core.model.CategoryGraph;
 import org.wikibrain.core.model.LocalPage;
 import org.wikibrain.phrases.PhraseAnalyzer;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.Collection;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by sen on 6/5/17.
+ * Created by Andre Archer
  */
 public class LabelCreator {
 
@@ -33,7 +31,7 @@ public class LabelCreator {
         // Configure the WikiBrain environment
 
         // Get the primary installed
-        Language lang = Language.getByLangCode("simple");
+        Language lang = env.getDefaultLanguage();
 
         ////////////////////////////////
         // Three components needed
@@ -265,18 +263,30 @@ public class LabelCreator {
     }
     public static void main(String[] args) throws ConfigurationException, DaoException, FileNotFoundException {
 
-        //Print output file
-        //File file = new File("/Users/sen/Desktop/AllGraphCount1.tsv");
-        //FileOutputStream fos = new FileOutputStream(file);
-        //PrintStream ps = new PrintStream(fos);
-        //System.setOut(ps);
+        Options options = new Options();
 
 
-        // Configure the WikiBrain environment
-        Env env = EnvBuilder.envFromArgs(args);
+        // Specify the output directory
+        options.addOption(
+                new DefaultOptionBuilder()
+                        .hasArg()
+                        .withLongOpt("output")
+                        .withDescription("output directory")
+                        .create("o"));
 
-        // Get the primary installed
-        Language lang = Language.getByLangCode("simple");
+        CommandLineParser parser = new PosixParser();
+        CommandLine cmd;
+        try {
+            cmd = parser.parse(options, args);
+        } catch (ParseException e) {
+            System.err.println("Invalid option usage: " + e.getMessage());
+            new HelpFormatter().printHelp("LabelCreator", options);
+            return;
+        }
+        Env env = new EnvBuilder(cmd).build();
+        Language lang = env.getDefaultLanguage();
+
+        String output = cmd.hasOption("o") ? cmd.getOptionValue("o") : ".";
 
         ////////////////////////////////
         // Three components needed
@@ -292,7 +302,15 @@ public class LabelCreator {
 
 
         LinkedHashMap<LocalPage, Map<Integer, Integer>> catMap = traverseAllGraph(lang,pageDao,catDao);
-        //printMapPages(catMap,"category", graph);
+
+        PrintStream ps =  new PrintStream(new BufferedOutputStream(new FileOutputStream(output + "/categories.tsv")));
+        System.setOut(ps);
+
+        printMapPages(catMap,"category", graph);
+
+        ps.close();
+
+
 
     }
 }

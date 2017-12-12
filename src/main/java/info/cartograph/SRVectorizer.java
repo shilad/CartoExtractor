@@ -10,6 +10,7 @@ import org.wikibrain.core.dao.DaoException;
 import org.wikibrain.core.dao.LocalLinkDao;
 import org.wikibrain.core.dao.LocalPageDao;
 import org.wikibrain.core.lang.Language;
+import org.wikibrain.core.model.LocalLink;
 import org.wikibrain.core.model.LocalPage;
 import org.wikibrain.matrix.DenseMatrix;
 import org.wikibrain.matrix.DenseMatrixRow;
@@ -73,9 +74,9 @@ public class SRVectorizer implements Iterable<CartographVector> {
         double pp = pop.getPopularity(p.getLocalId());
 
         List<String> links = new ArrayList<String>();
-//        for (LocalLink ll : linkDao.getLinks(lang, p.getLocalId(), true)) {
-//            links.add("" + ll.getLocalId());
-//        }
+        for (LocalLink ll : linkDao.getLinks(lang, p.getLocalId(), true)) {
+            links.add("" + ll.getLocalId());
+        }
 
         return new CartographVector(
                 p.getTitle().getCanonicalTitle(),
