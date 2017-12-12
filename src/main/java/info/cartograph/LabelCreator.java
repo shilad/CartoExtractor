@@ -274,6 +274,8 @@ public class LabelCreator {
                         .withDescription("output directory")
                         .create("o"));
 
+        EnvBuilder.addStandardOptions(options);
+
         CommandLineParser parser = new PosixParser();
         CommandLine cmd;
         try {
