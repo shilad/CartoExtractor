@@ -61,7 +61,7 @@ public class CategoryLabelCreator {
         LOG.info("writing category labels to " + pathOut);
         BufferedWriter writer = WpIOUtils.openWriter(pathOut);
         for (LocalPage page : pageDao.get(DaoFilter.normalPageFilter(lang))) {
-            writer.write(page.getLocalId());
+            writer.write("" + page.getLocalId());
             if (!pageCats.containsKey(page.getLocalId())) continue;
             TIntSet cats = new TIntHashSet();
             for (int catIndex : pageCats.get(page.getLocalId())) {
